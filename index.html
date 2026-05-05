@@ -290,7 +290,7 @@ input[type=range].vol-slider::-webkit-slider-thumb { -webkit-appearance: none; w
 let tracks = [];
 let curIdx = -1;
 let playing = false;
-let audioCtx = null, analyser = null, src = null, raf = null;
+let audioCtx = null, analyser = null, src = null, gainNode = null, raf = null;
 
 const audio = document.getElementById('audioEl');
 const canvas = document.getElementById('visCanvas');
@@ -312,8 +312,11 @@ function initAudio() {
   analyser.fftSize = 256;
   analyser.smoothingTimeConstant = 0.82;
   src = audioCtx.createMediaElementSource(audio);
+  gainNode = audioCtx.createGain();
   src.connect(analyser);
-  analyser.connect(audioCtx.destination);
+  analyser.connect(gainNode);
+  gainNode.connect(audioCtx.destination);
+  gainNode.gain.value = parseFloat(document.getElementById('volSlider').value) || 0.8;
 }
 
 // ---- Visualizer draw ----
@@ -475,7 +478,9 @@ function loadTrack(idx) {
   }
 
   audio.src = t.blobUrl;
-  audio.volume = parseFloat(document.getElementById('volSlider').value);
+  const vol = parseFloat(document.getElementById('volSlider').value);
+  if (gainNode) gainNode.gain.value = vol;
+  audio.volume = vol;
   initAudio();
   if (audioCtx.state === 'suspended') audioCtx.resume();
   audio.play();
@@ -525,8 +530,13 @@ audio.addEventListener('loadedmetadata', () => {
   if (tracks[curIdx]) tracks[curIdx].duration = fmt(audio.duration);
 });
 audio.addEventListener('ended', () => nextTrack());
-document.getElementById('volSlider').addEventListener('input', e => { audio.volume = parseFloat(e.target.value); });
-document.getElementById('volSlider').addEventListener('change', e => { audio.volume = parseFloat(e.target.value); });
+const updateVolume = e => {
+  const v = parseFloat(e.target.value);
+  if (gainNode) gainNode.gain.value = v;
+  audio.volume = v;
+};
+document.getElementById('volSlider').addEventListener('input', updateVolume);
+document.getElementById('volSlider').addEventListener('change', updateVolume);
 
 // ---- Download ----
 function dlTrack(idx, e) {
