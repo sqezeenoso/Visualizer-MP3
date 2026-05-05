@@ -526,6 +526,7 @@ audio.addEventListener('loadedmetadata', () => {
 });
 audio.addEventListener('ended', () => nextTrack());
 document.getElementById('volSlider').addEventListener('input', e => { audio.volume = parseFloat(e.target.value); });
+document.getElementById('volSlider').addEventListener('change', e => { audio.volume = parseFloat(e.target.value); });
 
 // ---- Download ----
 function dlTrack(idx, e) {
