@@ -426,9 +426,10 @@ function setAmbient(imgEl) {
 // ---- Add files ----
 async function addFiles(files) {
   for (const f of files) {
-    if (!f.type.startsWith('audio/') && !/\.(mp3|wav|ogg|flac|m4a|aac)$/i.test(f.name)) continue;
-    const coverUrl = await getCover(f);
-    tracks.push({ file: f, title: cleanName(f.name), artist: 'Sqezee Noso', coverUrl, blobUrl: URL.createObjectURL(f), duration: '—:——' });
+    if (f.type.startsWith('audio/') || /\.(mp3|wav|ogg|flac|m4a|aac)$/i.test(f.name)) {
+      const coverUrl = await getCover(f);
+      tracks.push({ file: f, title: cleanName(f.name), artist: 'Sqezee Noso', coverUrl, blobUrl: URL.createObjectURL(f), duration: '—:——' });
+    }
   }
   renderTracks();
   document.getElementById('trackSection').style.display = 'block';
