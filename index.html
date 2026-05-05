@@ -291,6 +291,7 @@ let tracks = [];
 let curIdx = -1;
 let playing = false;
 let audioCtx = null, analyser = null, src = null, gainNode = null, raf = null;
+let visualOpacity = 1; // Smooth fade control
 
 const audio = document.getElementById('audioEl');
 const canvas = document.getElementById('visCanvas');
@@ -378,6 +379,74 @@ function fmt(s) { if (!s || isNaN(s)) return '0:00'; return Math.floor(s/60)+':'
 // ---- Clean filename ----
 function cleanName(f) { return f.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ').replace(/\s+/g, ' ').trim(); }
 
+function decodeId3Text(data, encoding) {
+  const bytes = new Uint8Array(data);
+  let text = '';
+  if (encoding === 0) text = new TextDecoder('iso-8859-1').decode(bytes);
+  else if (encoding === 1 || encoding === 2) text = new TextDecoder('utf-16').decode(bytes);
+  else if (encoding === 3) text = new TextDecoder('utf-8').decode(bytes);
+  return text.replace(/\0/g, '').trim();
+}
+
+function syncSafeToInt(a,b,c,d) {
+  return ((a & 0x7f) << 21) | ((b & 0x7f) << 14) | ((c & 0x7f) << 7) | (d & 0x7f);
+}
+
+async function getId3Tags(file) {
+  return new Promise(res => {
+    const fr = new FileReader();
+    fr.onload = e => {
+      try {
+        const buf = e.target.result, v = new DataView(buf);
+        if (!(v.getUint8(0)===0x49 && v.getUint8(1)===0x44 && v.getUint8(2)===0x33)) { res({}); return; }
+        const ver = v.getUint8(3);
+        const tagSize = syncSafeToInt(v.getUint8(6), v.getUint8(7), v.getUint8(8), v.getUint8(9));
+        let off = 10;
+        const tags = {};
+        while (off + 10 <= 10 + tagSize) {
+          const id = String.fromCharCode(v.getUint8(off),v.getUint8(off+1),v.getUint8(off+2),v.getUint8(off+3));
+          if (!/^[A-Z0-9]{4}$/.test(id)) break;
+          const size = ver === 4
+            ? syncSafeToInt(v.getUint8(off+4), v.getUint8(off+5), v.getUint8(off+6), v.getUint8(off+7))
+            : v.getUint32(off+4);
+          if (size <= 0) break;
+          const frameStart = off + 10;
+          if (frameStart + size > buf.byteLength) break;
+          const encoding = v.getUint8(frameStart);
+          const frameData = buf.slice(frameStart + 1, frameStart + size);
+          if (id === 'TIT2' || id === 'TPE1' || id === 'TPE2') {
+            tags[id] = decodeId3Text(frameData, encoding);
+          }
+          off += 10 + size;
+        }
+        res(tags);
+      } catch { res({}); }
+    };
+    fr.readAsArrayBuffer(file.slice(0, 600000));
+  });
+}
+
+function parseTrackMeta(filename, tags) {
+  let title = tags.TIT2 || cleanName(filename);
+  let artist = tags.TPE1 || tags.TPE2 || '';
+  if (!artist) {
+    const patterns = [
+      /^(.+?)\s[-–|]\s(.+)$/,
+      /^(.+?)\sby\s(.+)$/i,
+      /^(.+?)\sft\.?\s(.+)$/i
+    ];
+    for (const pattern of patterns) {
+      const match = cleanName(filename).match(pattern);
+      if (match) {
+        artist = match[1].trim();
+        title = match[2].trim();
+        break;
+      }
+    }
+  }
+  return { title, artist: artist || 'Sqezee Noso' };
+}
+
 // ---- Extract ID3 cover ----
 async function getCover(file) {
   return new Promise(res => {
@@ -433,7 +502,9 @@ async function addFiles(files) {
     // Accept if: audio MIME type, has audio extension, or size > 100KB (likely audio)
     if (f.type.startsWith('audio/') || /\.(mp3|wav|ogg|flac|m4a|aac|m4b)$/i.test(f.name) || f.size > 102400) {
       const coverUrl = await getCover(f);
-      tracks.push({ file: f, title: cleanName(f.name), artist: 'Sqezee Noso', coverUrl, blobUrl: URL.createObjectURL(f), duration: '—:——' });
+      const tags = await getId3Tags(f);
+      const meta = parseTrackMeta(f.name, tags);
+      tracks.push({ file: f, title: meta.title, artist: meta.artist, coverUrl, blobUrl: URL.createObjectURL(f), duration: '—:——' });
     }
   }
   renderTracks();
