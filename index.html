@@ -333,12 +333,13 @@ function draw() {
   if (!analyser || !playing) {
     for (let i = 0; i < bars; i++) {
       const h = 3 + Math.sin(i * 0.4 + Date.now() * 0.001) * 3;
-      cx.fillStyle = i < filledBars ? 'rgba(200,169,110,0.5)' : 'rgba(200,169,110,0.1)';
+      cx.fillStyle = i < filledBars ? 'rgba(200,169,110,0.65)' : 'rgba(200,169,110,0.16)';
       cx.beginPath();
       cx.roundRect((bw + gap) * i, (H - h) / 2, bw, h, 1.5);
       cx.fill();
     }
     cx.restore();
+    raf = requestAnimationFrame(draw);
     return;
   }
 
@@ -503,7 +504,6 @@ function togglePlay() {
     audio.pause(); playing = false;
     document.getElementById('playerCard').classList.remove('playing');
     document.getElementById('btnPlay').classList.remove('pulsing');
-    cancelAnimationFrame(raf); draw();
   } else {
     audio.play(); playing = true;
     document.getElementById('playerCard').classList.add('playing');
