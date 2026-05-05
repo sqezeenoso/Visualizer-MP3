@@ -426,7 +426,8 @@ function setAmbient(imgEl) {
 // ---- Add files ----
 async function addFiles(files) {
   for (const f of files) {
-    if (f.type.startsWith('audio/') || /\.(mp3|wav|ogg|flac|m4a|aac)$/i.test(f.name)) {
+    // Accept if: audio MIME type, has audio extension, or size > 100KB (likely audio)
+    if (f.type.startsWith('audio/') || /\.(mp3|wav|ogg|flac|m4a|aac|m4b)$/i.test(f.name) || f.size > 102400) {
       const coverUrl = await getCover(f);
       tracks.push({ file: f, title: cleanName(f.name), artist: 'Sqezee Noso', coverUrl, blobUrl: URL.createObjectURL(f), duration: '—:——' });
     }
