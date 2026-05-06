@@ -71,7 +71,7 @@ header {
 .player-card {
   background: var(--card); border: 0.5px solid var(--border2); border-radius: 24px;
   padding: 28px; display: grid; grid-template-columns: 180px 1fr;
-  gap: 28px; align-items: start; position: relative; overflow: hidden;
+  gap: 28px; align-items: start; position: relative; overflow: visible;
 }
 
 .cover-wrap { position: relative; width: 180px; height: 180px; border-radius: 14px; overflow: hidden; flex-shrink: 0; background: var(--bg3); border: 0.5px solid var(--border); }
@@ -134,11 +134,169 @@ header {
 }
 .btn-download:hover { background: var(--accent-dim); border-color: var(--accent); transform: translateY(-1px); }
 
-.vol-row { display: flex; align-items: center; gap: 6px; }
+/* ---- Volume Row ---- */
+.vol-row { display: flex; align-items: center; gap: 6px; position: relative; }
 .vol-icon { font-size: 13px; color: var(--text-muted); }
-input[type=range].vol-slider { -webkit-appearance: none; width: 72px; height: 3px; background: var(--bg3); border-radius: 2px; outline: none; cursor: pointer; }
-input[type=range].vol-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 11px; height: 11px; background: var(--accent); border-radius: 50%; cursor: pointer; }
+input[type=range].vol-slider { -webkit-appearance: none; appearance: none; width: 72px; height: 3px; background: var(--bg3); border-radius: 2px; outline: none; cursor: pointer; }
+input[type=range].vol-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 11px; height: 11px; background: var(--accent); border-radius: 50%; cursor: pointer; }
 
+/* ---- Settings Button ---- */
+.btn-settings {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: var(--bg3); border: 0.5px solid var(--border);
+  color: var(--text-muted); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: color 0.2s, border-color 0.2s, background 0.2s, transform 0.2s;
+  flex-shrink: 0; position: relative;
+}
+.btn-settings:hover { color: var(--accent); border-color: var(--border2); background: var(--accent-dim); }
+.btn-settings.active {
+  color: var(--accent); border-color: var(--accent);
+  background: var(--accent-dim);
+  animation: settingsSpin 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes settingsSpin { from { transform: rotate(0deg); } to { transform: rotate(60deg); } }
+
+/* ---- Speed Panel ---- */
+.speed-panel {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-50%) translateY(8px);
+  background: var(--card);
+  border: 0.5px solid var(--border2);
+  border-radius: 16px;
+  padding: 18px 20px 14px;
+  width: 230px;
+  z-index: 200;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.5), 0 0 0 0.5px var(--border);
+}
+.speed-panel::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 9px; height: 9px;
+  background: var(--card);
+  border-right: 0.5px solid var(--border2);
+  border-bottom: 0.5px solid var(--border2);
+}
+.speed-panel.open {
+  opacity: 1;
+  pointer-events: all;
+  transform: translateX(-50%) translateY(0);
+}
+
+.speed-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px;
+}
+.speed-label {
+  font-family: 'Syne', sans-serif;
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--text-muted);
+}
+.speed-value-badge {
+  font-family: 'Syne', sans-serif;
+  font-size: 14px; font-weight: 800;
+  color: var(--accent);
+  background: var(--accent-dim);
+  padding: 3px 10px; border-radius: 99px;
+  border: 0.5px solid var(--border2);
+  min-width: 52px; text-align: center;
+  transition: color 0.2s;
+}
+
+/* Speed Slider */
+.speed-slider-wrap { position: relative; padding: 8px 0; margin-bottom: 14px; }
+input[type=range].speed-slider {
+  -webkit-appearance: none; appearance: none;
+  width: 100%; height: 4px;
+  background: transparent;
+  outline: none; cursor: pointer;
+  position: relative; z-index: 2;
+}
+.speed-track {
+  position: absolute; top: 50%; left: 0; right: 0;
+  height: 4px; border-radius: 2px;
+  background: var(--bg3);
+  transform: translateY(-50%);
+  overflow: hidden;
+}
+.speed-track-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  border-radius: 2px;
+  transition: width 0.05s;
+}
+input[type=range].speed-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 18px; height: 18px;
+  background: var(--accent2);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0 0 3px rgba(200,169,110,0.2), 0 2px 8px rgba(0,0,0,0.4);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+input[type=range].speed-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 0 5px rgba(200,169,110,0.25), 0 2px 12px rgba(0,0,0,0.5);
+}
+input[type=range].speed-slider::-moz-range-thumb {
+  width: 18px; height: 18px;
+  background: var(--accent2);
+  border: none; border-radius: 50%;
+  cursor: pointer;
+}
+
+/* Speed Presets */
+.speed-presets {
+  display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px;
+}
+.speed-preset {
+  flex: 1; min-width: 0;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px; font-weight: 500;
+  color: var(--text-muted);
+  background: var(--bg3);
+  border: 0.5px solid var(--border);
+  border-radius: 7px;
+  padding: 5px 4px;
+  cursor: pointer;
+  text-align: center;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  white-space: nowrap;
+}
+.speed-preset:hover { color: var(--accent); border-color: var(--border2); background: var(--accent-dim); }
+.speed-preset.active { color: var(--accent); border-color: var(--accent); background: var(--accent-dim); font-weight: 600; }
+
+/* Pitch indicator */
+.pitch-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-top: 10px;
+  border-top: 0.5px solid var(--border);
+}
+.pitch-label { font-size: 11px; color: var(--text-muted); letter-spacing: 0.5px; }
+.pitch-val { font-size: 12px; font-weight: 600; color: var(--text-muted); font-family: 'Syne', sans-serif; transition: color 0.2s; }
+.pitch-val.shifted { color: var(--accent); }
+
+.btn-reset-speed {
+  display: flex; align-items: center; gap: 5px;
+  background: none; border: none;
+  color: var(--text-muted); font-size: 11px;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer; padding: 0;
+  transition: color 0.15s;
+}
+.btn-reset-speed:hover { color: var(--accent); }
+
+
+/* ---- Track List ---- */
 .section { position: relative; z-index: 1; max-width: 860px; margin: 36px auto 0; padding: 0 24px 80px; }
 .section-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 20px; }
 .section-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; letter-spacing: -0.3px; color: var(--text); }
@@ -197,6 +355,9 @@ input[type=range].vol-slider::-webkit-slider-thumb { -webkit-appearance: none; w
   .section { padding: 0 16px 60px; }
   .track-item { grid-template-columns: 28px 40px 1fr auto auto; }
   .track-del { display: none; }
+  .speed-panel { left: auto; right: 0; transform: translateY(8px); }
+  .speed-panel::after { left: auto; right: 20px; transform: rotate(45deg); }
+  .speed-panel.open { transform: translateY(0); }
 }
 </style>
 <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
@@ -260,11 +421,56 @@ input[type=range].vol-slider::-webkit-slider-thumb { -webkit-appearance: none; w
         <button class="btn-ctrl" onclick="nextTrack()" title="Berikutnya">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zm2.5-6 5.5 3.9V8.1L8.5 12zM16 6v12h2V6h-2z"/></svg>
         </button>
+
+        <!-- Volume Row -->
         <div class="vol-row" style="margin-left:6px">
-          <ion-icon name="volume-low-outline" class="vol-icon"></ion-icon>
+          <ion-icon name="volume-mute-outline" class="vol-icon" id="volMute" style="display:none"></ion-icon>
+          <ion-icon name="volume-low-outline" class="vol-icon" id="volLow"></ion-icon>
           <input type="range" class="vol-slider" id="volSlider" min="0" max="1" step="0.05" value="0.8">
-          <ion-icon name="volume-medium-outline" class="vol-icon"></ion-icon>
+          <ion-icon name="volume-medium-outline" class="vol-icon" id="volMedium"></ion-icon>
+
+          <!-- Settings Button -->
+          <button class="btn-settings" id="btnSettings" onclick="toggleSpeedPanel()" title="Pengaturan Kecepatan">
+            <ion-icon name="settings-outline"></ion-icon>
+          </button>
+
+          <!-- Speed Panel -->
+          <div class="speed-panel" id="speedPanel">
+            <div class="speed-header">
+              <span class="speed-label">Kecepatan</span>
+              <span class="speed-value-badge" id="speedBadge">1.0×</span>
+            </div>
+
+            <div class="speed-slider-wrap">
+              <div class="speed-track">
+                <div class="speed-track-fill" id="speedTrackFill"></div>
+              </div>
+              <input type="range" class="speed-slider" id="speedSlider"
+                min="0.25" max="3.0" step="0.05" value="1.0">
+            </div>
+
+            <div class="speed-presets">
+              <button class="speed-preset" onclick="setSpeed(0.5)">0.5×</button>
+              <button class="speed-preset" onclick="setSpeed(0.75)">0.75×</button>
+              <button class="speed-preset active" onclick="setSpeed(1.0)">1×</button>
+              <button class="speed-preset" onclick="setSpeed(1.25)">1.25×</button>
+              <button class="speed-preset" onclick="setSpeed(1.5)">1.5×</button>
+              <button class="speed-preset" onclick="setSpeed(2.0)">2×</button>
+            </div>
+
+            <div class="pitch-row">
+              <div>
+                <div class="pitch-label">Pitch (otomatis berubah)</div>
+                <div class="pitch-val" id="pitchVal">Normal</div>
+              </div>
+              <button class="btn-reset-speed" onclick="setSpeed(1.0)">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
+                Reset
+              </button>
+            </div>
+          </div>
         </div>
+
         <button class="btn-download" onclick="downloadCurrent()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"/></svg>
           Unduh
@@ -295,8 +501,10 @@ input[type=range].vol-slider::-webkit-slider-thumb { -webkit-appearance: none; w
 let tracks = [];
 let curIdx = -1;
 let playing = false;
-let audioCtx = null, analyser = null, src = null, gainNode = null, raf = null;
-let visualLevels = []; // smooth bar heights for pause transition
+let raf = null;
+let visualLevels = [];
+let currentSpeed = 1.0;
+let speedPanelOpen = false;
 
 const audio = document.getElementById('audioEl');
 const canvas = document.getElementById('visCanvas');
@@ -310,19 +518,45 @@ function resizeCv() {
 }
 window.addEventListener('resize', resizeCv);
 
-// ---- Web Audio ----
+// ---- Speed + Pitch ----
+// Key insight: set preservesPitch=false BEFORE and AFTER setting playbackRate
+// and also in a canplay/playing listener so browser can't override it back
+function applySpeed(speed) {
+  audio.preservesPitch = false;
+  audio.mozPreservesPitch = false;
+  audio.webkitPreservesPitch = false;
+  audio.playbackRate = speed;
+  // Set again after small delay — Chrome sometimes resets it
+  setTimeout(() => {
+    audio.preservesPitch = false;
+    audio.mozPreservesPitch = false;
+    audio.webkitPreservesPitch = false;
+  }, 50);
+}
+
+// Keep enforcing preservesPitch=false during playback
+audio.addEventListener('ratechange', () => {
+  audio.preservesPitch = false;
+  audio.mozPreservesPitch = false;
+  audio.webkitPreservesPitch = false;
+});
+
+// ---- Web Audio for real visualizer ----
+let audioCtx = null, analyser = null, srcNode = null;
+
 function initAudio() {
   if (audioCtx) return;
   audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   analyser = audioCtx.createAnalyser();
   analyser.fftSize = 256;
   analyser.smoothingTimeConstant = 0.82;
-  src = audioCtx.createMediaElementSource(audio);
-  gainNode = audioCtx.createGain();
-  src.connect(analyser);
-  analyser.connect(gainNode);
-  gainNode.connect(audioCtx.destination);
-  gainNode.gain.value = parseFloat(document.getElementById('volSlider').value) || 0.8;
+  srcNode = audioCtx.createMediaElementSource(audio);
+  srcNode.connect(analyser);
+  analyser.connect(audioCtx.destination);
+  // CRITICAL: set preservesPitch AFTER createMediaElementSource
+  audio.preservesPitch = false;
+  audio.mozPreservesPitch = false;
+  audio.webkitPreservesPitch = false;
 }
 
 // ---- Visualizer draw ----
@@ -476,7 +710,6 @@ function parseTrackMeta(filename, tags) {
   return { title, artist: artist || 'Unknown Artist' };
 }
 
-// ---- Extract ID3 cover ----
 async function getCover(file) {
   return new Promise(res => {
     const fr = new FileReader();
@@ -507,7 +740,6 @@ async function getCover(file) {
   });
 }
 
-// ---- Dominant color → ambient ----
 function setAmbient(imgEl) {
   try {
     const c = document.createElement('canvas'); c.width = c.height = 16;
@@ -532,10 +764,80 @@ function scrollToPlayerSection() {
   window.scrollTo({ top, behavior: 'smooth' });
 }
 
+// ---- Speed Control ----
+function toggleSpeedPanel() {
+  speedPanelOpen = !speedPanelOpen;
+  const panel = document.getElementById('speedPanel');
+  const btn = document.getElementById('btnSettings');
+  panel.classList.toggle('open', speedPanelOpen);
+  btn.classList.toggle('active', speedPanelOpen);
+}
+
+function setSpeed(speed) {
+  currentSpeed = speed;
+  applySpeed(speed);
+
+  // Update slider
+  const slider = document.getElementById('speedSlider');
+  slider.value = speed;
+  updateSpeedUI(speed);
+}
+
+function updateSpeedUI(speed) {
+  // Badge
+  document.getElementById('speedBadge').textContent = speed.toFixed(2).replace(/\.?0+$/, '') + '×';
+
+  // Track fill
+  const min = 0.25, max = 3.0;
+  const pct = ((speed - min) / (max - min)) * 100;
+  document.getElementById('speedTrackFill').style.width = pct + '%';
+
+  // Pitch value display
+  const pitchVal = document.getElementById('pitchVal');
+  if (speed === 1.0) {
+    pitchVal.textContent = 'Normal';
+    pitchVal.classList.remove('shifted');
+  } else if (speed < 1.0) {
+    const semitones = Math.round(12 * Math.log2(speed));
+    pitchVal.textContent = `${semitones} semitone`;
+    pitchVal.classList.add('shifted');
+  } else {
+    const semitones = Math.round(12 * Math.log2(speed));
+    pitchVal.textContent = `+${semitones} semitone`;
+    pitchVal.classList.add('shifted');
+  }
+
+  // Update preset active state
+  document.querySelectorAll('.speed-preset').forEach(btn => {
+    const val = parseFloat(btn.textContent);
+    btn.classList.toggle('active', Math.abs(val - speed) < 0.01);
+  });
+}
+
+// Speed slider input
+document.getElementById('speedSlider').addEventListener('input', e => {
+  const speed = parseFloat(e.target.value);
+  setSpeed(speed);
+});
+
+// Close panel when clicking outside
+document.addEventListener('click', e => {
+  if (!speedPanelOpen) return;
+  const panel = document.getElementById('speedPanel');
+  const btn = document.getElementById('btnSettings');
+  if (!panel.contains(e.target) && !btn.contains(e.target)) {
+    speedPanelOpen = false;
+    panel.classList.remove('open');
+    btn.classList.remove('active');
+  }
+});
+
+// Initialize speed UI
+updateSpeedUI(1.0);
+
 // ---- Add files ----
 async function addFiles(files) {
   for (const f of files) {
-    // Accept if: audio MIME type, has audio extension, or size > 100KB (likely audio)
     if (f.type.startsWith('audio/') || /\.(mp3|wav|ogg|flac|m4a|aac|m4b)$/i.test(f.name) || f.size > 102400) {
       const coverUrl = await getCover(f);
       const tags = await getId3Tags(f);
@@ -549,7 +851,6 @@ async function addFiles(files) {
   if (tracks.length > 0) {
     requestAnimationFrame(() => requestAnimationFrame(scrollToPlayerSection));
   }
-  // load durations
   tracks.forEach((t, i) => {
     if (t.duration !== '—:——') return;
     const a = new Audio(); a.src = t.blobUrl;
@@ -590,12 +891,13 @@ function loadTrack(idx) {
   }
 
   audio.src = t.blobUrl;
+
   const vol = parseFloat(document.getElementById('volSlider').value);
-  if (gainNode) gainNode.gain.value = vol;
   audio.volume = vol;
+  updateVolumeIcons(vol);
   initAudio();
   if (audioCtx.state === 'suspended') audioCtx.resume();
-  audio.play();
+  audio.play().then(() => { applySpeed(currentSpeed); });
   playing = true;
   syncBtn();
   document.getElementById('playerSection').classList.add('visible');
@@ -610,14 +912,12 @@ function loadTrack(idx) {
 
 function togglePlay() {
   if (curIdx < 0) { if (tracks.length > 0) loadTrack(0); return; }
-  initAudio();
-  if (audioCtx.state === 'suspended') audioCtx.resume();
   if (playing) {
     audio.pause(); playing = false;
     document.getElementById('playerCard').classList.remove('playing');
     document.getElementById('btnPlay').classList.remove('pulsing');
   } else {
-    audio.play(); playing = true;
+    audio.play().then(() => { applySpeed(currentSpeed); }); playing = true;
     document.getElementById('playerCard').classList.add('playing');
     document.getElementById('btnPlay').classList.add('pulsing');
     if (!raf) raf = requestAnimationFrame(draw);
@@ -642,15 +942,35 @@ audio.addEventListener('loadedmetadata', () => {
   if (tracks[curIdx]) tracks[curIdx].duration = fmt(audio.duration);
 });
 audio.addEventListener('ended', () => nextTrack());
-audio.addEventListener('play', () => { if (!raf) raf = requestAnimationFrame(draw); });
+audio.addEventListener('play', () => {
+  if (!raf) raf = requestAnimationFrame(draw);
+  // Enforce preservesPitch on every play event
+  audio.preservesPitch = false;
+  audio.mozPreservesPitch = false;
+  audio.webkitPreservesPitch = false;
+});
 audio.addEventListener('seeked', () => { if (playing && !raf) raf = requestAnimationFrame(draw); });
+
+const updateVolumeIcons = v => {
+  const volMute = document.getElementById('volMute');
+  const volLow = document.getElementById('volLow');
+  if (v === 0) {
+    volMute.style.display = 'block';
+    volLow.style.display = 'none';
+  } else {
+    volMute.style.display = 'none';
+    volLow.style.display = 'block';
+  }
+};
 const updateVolume = e => {
   const v = parseFloat(e.target.value);
-  if (gainNode) gainNode.gain.value = v;
   audio.volume = v;
+  updateVolumeIcons(v);
 };
+
 document.getElementById('volSlider').addEventListener('input', updateVolume);
 document.getElementById('volSlider').addEventListener('change', updateVolume);
+updateVolumeIcons(parseFloat(document.getElementById('volSlider').value) || 0.8);
 
 // ---- Download ----
 function dlTrack(idx, e) {
