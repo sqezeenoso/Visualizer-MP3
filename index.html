@@ -146,7 +146,7 @@ input[type=range].vol-slider::-webkit-slider-thumb { -webkit-appearance: none; w
 
 .track-list { display: flex; flex-direction: column; gap: 3px; }
 .track-item {
-  display: grid; grid-template-columns: 34px 46px 1fr auto auto auto;
+  display: grid; grid-template-columns: 34px 46px 1fr auto auto;
   align-items: center; gap: 12px; padding: 12px 14px; border-radius: var(--r-sm);
   cursor: pointer; transition: background 0.15s; border: 0.5px solid transparent;
 }
@@ -523,6 +523,13 @@ function setAmbient(imgEl) {
   ['amb1','amb2','amb3'].forEach(id => document.getElementById(id).classList.add('on'));
 }
 
+function scrollToPlayerSection() {
+  const playerSection = document.getElementById('playerSection');
+  if (!playerSection) return;
+  const top = playerSection.getBoundingClientRect().top + window.pageYOffset - 24;
+  window.scrollTo({ top, behavior: 'smooth' });
+}
+
 // ---- Add files ----
 async function addFiles(files) {
   for (const f of files) {
@@ -537,6 +544,9 @@ async function addFiles(files) {
   renderTracks();
   document.getElementById('trackSection').style.display = 'block';
   if (curIdx < 0 && tracks.length > 0) loadTrack(0);
+  if (tracks.length > 0) {
+    requestAnimationFrame(() => requestAnimationFrame(scrollToPlayerSection));
+  }
   // load durations
   tracks.forEach((t, i) => {
     if (t.duration !== '—:——') return;
@@ -691,13 +701,10 @@ function renderTracks() {
         <div class="track-artist">${t.artist}</div>
       </div>
       <div class="track-dur">${t.duration}</div>
-      <button class="track-dl" title="Unduh" onclick="dlTrack(${i},event)">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"/></svg>
-      </button>
       <button class="track-del" title="Hapus" onclick="delTrack(${i},event)">✕</button>
     `;
     div.addEventListener('click', e => {
-      if (e.target.closest('.track-dl') || e.target.closest('.track-del')) return;
+      if (e.target.closest('.track-del')) return;
       if (curIdx === i) togglePlay(); else loadTrack(i);
     });
     list.appendChild(div);
