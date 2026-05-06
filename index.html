@@ -291,7 +291,7 @@ let tracks = [];
 let curIdx = -1;
 let playing = false;
 let audioCtx = null, analyser = null, src = null, gainNode = null, raf = null;
-let visualOpacity = 1; // Smooth fade control
+let visualLevels = []; // smooth bar heights for pause transition
 
 const audio = document.getElementById('audioEl');
 const canvas = document.getElementById('visCanvas');
@@ -331,32 +331,34 @@ function draw() {
   const prog = audio.duration ? audio.currentTime / audio.duration : 0;
   const filledBars = Math.floor(prog * bars);
 
-  if (!analyser || !playing) {
+  if (visualLevels.length !== bars) visualLevels = new Array(bars).fill(3);
+  const targetLevels = new Array(bars).fill(3);
+
+  if (analyser && playing) {
+    const buf = new Uint8Array(analyser.frequencyBinCount);
+    analyser.getByteFrequencyData(buf);
     for (let i = 0; i < bars; i++) {
-      const h = 3 + Math.sin(i * 0.4 + Date.now() * 0.001) * 3;
-      cx.fillStyle = i < filledBars ? 'rgba(200,169,110,0.65)' : 'rgba(200,169,110,0.16)';
-      cx.beginPath();
-      cx.roundRect((bw + gap) * i, (H - h) / 2, bw, h, 1.5);
-      cx.fill();
+      const val = buf[Math.floor(i * buf.length / bars)] / 255;
+      targetLevels[i] = Math.max(3, val * (H - 4));
     }
-    cx.restore();
-    raf = requestAnimationFrame(draw);
-    return;
   }
 
-  const buf = new Uint8Array(analyser.frequencyBinCount);
-  analyser.getByteFrequencyData(buf);
-
   for (let i = 0; i < bars; i++) {
-    const val = buf[Math.floor(i * buf.length / bars)] / 255;
-    const h = Math.max(3, val * (H - 4));
+    visualLevels[i] += (targetLevels[i] - visualLevels[i]) * 0.14;
+    const h = visualLevels[i];
     const played = i < filledBars;
-    if (played) {
-      const g = cx.createLinearGradient(0, (H-h)/2, 0, (H+h)/2);
-      g.addColorStop(0, '#f5dfa8'); g.addColorStop(1, '#c8a96e');
-      cx.fillStyle = g;
+    if (playing) {
+      if (played) {
+        const g = cx.createLinearGradient(0, (H-h)/2, 0, (H+h)/2);
+        g.addColorStop(0, '#f5dfa8'); g.addColorStop(1, '#c8a96e');
+        cx.fillStyle = g;
+      } else {
+        const alpha = 0.12 + (h / (H - 4)) * 0.28;
+        cx.fillStyle = `rgba(200,169,110,${alpha})`;
+      }
     } else {
-      cx.fillStyle = `rgba(200,169,110,${0.12 + val * 0.28})`;
+      const alpha = 0.18 + (h / 12) * 0.1;
+      cx.fillStyle = `rgba(200,169,110,${alpha})`;
     }
     cx.beginPath();
     cx.roundRect((bw + gap) * i, (H - h) / 2, bw, h, 1.5);
@@ -444,7 +446,7 @@ function parseTrackMeta(filename, tags) {
       }
     }
   }
-  return { title, artist: artist || 'Sqezee Noso' };
+  return { title, artist: artist || 'Unknown Artist' };
 }
 
 // ---- Extract ID3 cover ----
@@ -562,6 +564,7 @@ function loadTrack(idx) {
   document.getElementById('playerCard').classList.add('playing');
   document.getElementById('btnPlay').classList.add('pulsing');
   cancelAnimationFrame(raf);
+  raf = null;
   resizeCv();
   raf = requestAnimationFrame(draw);
   renderTracks();
@@ -579,7 +582,7 @@ function togglePlay() {
     audio.play(); playing = true;
     document.getElementById('playerCard').classList.add('playing');
     document.getElementById('btnPlay').classList.add('pulsing');
-    raf = requestAnimationFrame(draw);
+    if (!raf) raf = requestAnimationFrame(draw);
   }
   syncBtn(); renderTracks();
 }
@@ -601,6 +604,8 @@ audio.addEventListener('loadedmetadata', () => {
   if (tracks[curIdx]) tracks[curIdx].duration = fmt(audio.duration);
 });
 audio.addEventListener('ended', () => nextTrack());
+audio.addEventListener('play', () => { if (!raf) raf = requestAnimationFrame(draw); });
+audio.addEventListener('seeked', () => { if (playing && !raf) raf = requestAnimationFrame(draw); });
 const updateVolume = e => {
   const v = parseFloat(e.target.value);
   if (gainNode) gainNode.gain.value = v;
