@@ -7,6 +7,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html {
+  scroll-behavior: smooth;
+}
 
 :root {
   --bg: #080810;
@@ -146,14 +149,14 @@ input[type=range].vol-slider::-webkit-slider-thumb { -webkit-appearance: none; a
   background: var(--bg3); border: 0.5px solid var(--border);
   color: var(--text-muted); cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  transition: color 0.2s, border-color 0.2s, background 0.2s, transform 0.2s;
+  transition: color 0.2s, border-color 0.2s, background 0.2s, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   flex-shrink: 0; position: relative;
 }
 .btn-settings:hover { color: var(--accent); border-color: var(--border2); background: var(--accent-dim); }
 .btn-settings.active {
   color: var(--accent); border-color: var(--accent);
   background: var(--accent-dim);
-  animation: settingsSpin 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform: rotate(60deg);
 }
 @keyframes settingsSpin { from { transform: rotate(0deg); } to { transform: rotate(60deg); } }
 
@@ -342,6 +345,16 @@ input[type=range].speed-slider::-moz-range-thumb {
 .track-del { width: 30px; height: 30px; border-radius: 7px; background: none; border: 0.5px solid transparent; color: var(--text-muted); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: color 0.2s, border-color 0.2s, background 0.2s; font-size: 13px; flex-shrink: 0; }
 .track-del:hover { color: #e06060; border-color: rgba(224,96,96,0.3); background: rgba(224,96,96,0.08); }
 
+.footer-socials { display: flex; gap: 16px; justify-content: center; margin-top: 10px; flex-wrap: wrap; }
+.footer-social {
+  display: flex; align-items: center; gap: 6px;
+  color: var(--text-muted); text-decoration: none; font-size: 13px;
+  transition: color 0.2s;
+}
+
+.footer-social:hover { color: var(--accent); }
+.footer-social ion-icon { font-size: 16px; }
+
 .footer { text-align: center; padding: 18px 16px 32px; color: var(--text-muted); font-size: 13px; }
 
 .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--card); border: 0.5px solid var(--border2); color: var(--text); padding: 12px 22px; border-radius: 12px; font-size: 13px; font-weight: 500; z-index: 999; transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1); display: flex; align-items: center; gap: 8px; white-space: nowrap; }
@@ -359,9 +372,13 @@ input[type=range].speed-slider::-moz-range-thumb {
   .speed-panel { left: auto; right: 0; transform: translateY(8px); }
   .speed-panel::after { left: auto; right: 20px; transform: rotate(45deg); }
   .speed-panel.open { transform: translateY(0); }
-  .btn-download { padding: 9px 12px; font-size: 12px; }
-  .vol-slider { width: 52px; }
-  .btn-download { width: 100%; justify-content: center; margin-left: 0; margin-top: 8px; }
+  .btn-download { padding: 9px 12px; font-size: 12px; flex-basis: 100%; justify-content: center; margin-left: 0; margin-top: 8px; }
+  .vol-slider { width: 50px; }
+  .vol-row { flex: 1; }
+  .btn-ctrl { padding: 6px; }
+  .vol-row { margin-left: 0; }
+  .controls { justify-content: center; }
+  .vol-row { margin-left: 0 !important; }
 }
 </style>
 <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
@@ -399,7 +416,7 @@ input[type=range].speed-slider::-moz-range-thumb {
   <div class="player-card" id="playerCard">
     <div class="cover-wrap" id="coverWrap">
       <img id="coverImg" alt="cover">
-      <div class="cover-ph" id="coverPh">🎵</div>
+      <div class="cover-ph" id="coverPh"><ion-icon name="musical-notes"></ion-icon></div>
       <div class="vinyl-ring"></div>
     </div>
     <div class="np-info">
@@ -492,7 +509,20 @@ input[type=range].speed-slider::-moz-range-thumb {
   <div class="track-list" id="trackList"></div>
 </div>
 
-<footer class="footer">© 2026 Sqezee Noso | Music Player</footer>
+<footer class="footer">
+  <div>© 2026 Sqezee Noso | Music Player</div>
+  <div class="footer-socials">
+    <a href="https://www.youtube.com/@SqezeeNoSpelee_" target="_blank" class="footer-social">
+      <ion-icon name="logo-youtube"></ion-icon> SqezeeNoSpelee_
+    </a>
+    <a href="https://www.instagram.com/akbardanaa_/" target="_blank" class="footer-social">
+      <ion-icon name="logo-instagram"></ion-icon> akbardanaa_
+    </a>
+    <a href="https://www.tiktok.com/@sqezeenospelee_" target="_blank" class="footer-social">
+      <ion-icon name="logo-tiktok"></ion-icon> sqezeenospelee_
+    </a>
+  </div>
+</footer>
 
 <div class="toast" id="toast">
   <span class="toast-icon">✓</span>
@@ -607,6 +637,17 @@ function draw() {
     cx.roundRect((bw + gap) * i, (H - h) / 2, bw, h, 1.5);
     cx.fill();
   }
+
+  // Playhead line
+if (audio.duration) {
+  const x = prog * W;
+  cx.beginPath();
+  cx.moveTo(x, 0);
+  cx.lineTo(x, H);
+  cx.strokeStyle = 'rgba(200,169,110,0.8)';
+  cx.lineWidth = 3;
+  cx.stroke();
+}
   cx.restore();
   raf = requestAnimationFrame(draw);
 }
@@ -617,6 +658,24 @@ document.getElementById('seekOverlay').addEventListener('click', e => {
   const r = e.currentTarget.getBoundingClientRect();
   audio.currentTime = ((e.clientX - r.left) / r.width) * audio.duration;
 });
+
+let isSeeking = false;
+document.getElementById('seekOverlay').addEventListener('mousedown', () => isSeeking = true);
+document.getElementById('seekOverlay').addEventListener('mousemove', e => {
+  if (!isSeeking || !audio.duration) return;
+  const r = e.currentTarget.getBoundingClientRect();
+  audio.currentTime = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * audio.duration;
+});
+document.addEventListener('mouseup', () => isSeeking = false);
+
+// Touch support (mobile)
+document.getElementById('seekOverlay').addEventListener('touchmove', e => {
+  if (!audio.duration) return;
+  e.preventDefault();
+  const r = e.currentTarget.getBoundingClientRect();
+  const touch = e.touches[0];
+  audio.currentTime = Math.max(0, Math.min(1, (touch.clientX - r.left) / r.width)) * audio.duration;
+}, { passive: false });
 
 // ---- Format time ----
 function fmt(s) { if (!s || isNaN(s)) return '0:00'; return Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0'); }
@@ -853,7 +912,7 @@ async function addFiles(files) {
   document.getElementById('trackSection').style.display = 'block';
   if (curIdx < 0 && tracks.length > 0) loadTrack(0);
   if (tracks.length > 0) {
-    requestAnimationFrame(() => requestAnimationFrame(scrollToPlayerSection));
+  setTimeout(scrollToPlayerSection, 50);
   }
   tracks.forEach((t, i) => {
     if (t.duration !== '—:——') return;
@@ -1020,7 +1079,7 @@ function renderTracks() {
       <div class="track-vis"><div class="tv-bar"></div><div class="tv-bar"></div><div class="tv-bar"></div><div class="tv-bar"></div></div>
       <div class="track-cover">
         ${t.coverUrl ? `<img src="${t.coverUrl}" class="on" alt="">` : ''}
-        🎵
+        <ion-icon name="musical-notes"></ion-icon>
       </div>
       <div class="track-meta">
         <div class="track-name">${t.title}</div>
