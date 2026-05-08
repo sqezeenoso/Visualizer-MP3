@@ -213,7 +213,7 @@ input[type=range].vol-slider::-webkit-slider-thumb { -webkit-appearance: none; a
 }
 
 /* Speed Slider */
-.speed-slider-wrap { position: relative; padding: 8px 0; margin-bottom: 14px; }
+.speed-slider-wrap { position: relative; padding: 8px 0; margin-bottom: 14px; display: flex; align-items: center; }
 input[type=range].speed-slider {
   -webkit-appearance: none; appearance: none;
   width: 100%; height: 4px;
@@ -227,6 +227,7 @@ input[type=range].speed-slider {
   background: var(--bg3);
   transform: translateY(-50%);
   overflow: hidden;
+  pointer-events: none;
 }
 .speed-track-fill {
   height: 100%;
